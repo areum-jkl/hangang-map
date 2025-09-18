@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>한강버스 선착장 지도</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    html, body {margin:0; padding:0; height:100%;}
+    #hb-map {width:100%; height:100%;}
+  </style>
+  <!-- Kakao 지도 SDK: 반드시 먼저 로드 -->
+  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=63ca51e0ecf01a7889b6b77986386cc9&libraries=services"></script>
+</head>
+<body>
+  <div id="hb-map"></div>
+
+  <!-- 지도 스크립트는 SDK 아래에서 실행 -->
+  <script>
+    window.onload = function() {
+      var mapContainer = document.getElementById('hb-map');
+      var map = new kakao.maps.Map(mapContainer, {
+        center: new kakao.maps.LatLng(37.5283, 126.9328),
+        level: 6
+      });
+
+      var geocoder = new kakao.maps.services.Geocoder();
+      var bounds = new kakao.maps.LatLngBounds();
+
+      var docks = [
+        { title: '마곡 선착장', addr: '서울특별시 강서구 가양동 441' },
+        { title: '망원 선착장', addr: '서울특별시 마포구 망원동 205-8' },
+        { title: '여의도 선착장', addr: '서울특별시 영등포구 여의도동 85-1' },
+        { title: '압구정/잠원 선착장', addr: '서울특별시 강남구 압구정동 380-1' },
+        { title: '옥수 선착장', addr: '서울특별시 성동구 옥수동 86' },
+        { title: '뚝섬 선착장', addr: '서울특별시 광진구 자양동 126-1' },
+        { title: '잠실 선착장', addr: '서울특별시 송파구 잠실동 1-2' }
+      ];
+
+      docks.forEach(function (dock) {
+        geocoder.addressSearch(dock.addr, function (result, status) {
+          if (status !== kakao.maps.services.Status.OK || !result[0]) return;
+          var y = parseFloat(result[0].y), x = parseFloat(result[0].x);
+          var pos = new kakao.maps.LatLng(y, x);
+
+          var marker = new kakao.maps.Marker({ map: map, position: pos, title: dock.title });
+          var iwContent =
+            '<div style="padding:8px;font-size:14px;">' +
+            '<b>' + dock.title + '</b><br>' +
+            '<a href="https://map.kakao.com/link/to/' +
+            encodeURIComponent(dock.title) + ',' + y + ',' + x +
+            '" target="_blank" rel="noopener">길찾기 열기</a></div>';
+          var infowindow = new kakao.maps.InfoWindow({ content: iwContent });
+
+          kakao.maps.event.addListener(marker, 'click', function () {
+            infowindow.open(map, marker);
+          });
+
+          bounds.extend(pos);
+          map.setBounds(bounds);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
